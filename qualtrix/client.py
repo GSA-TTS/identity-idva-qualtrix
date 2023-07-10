@@ -157,6 +157,8 @@ def get_answer_from_result(result):
         "race": labels["QID36"],
         "gender": labels["QID14"],
         "age": values["QID15_TEXT"],
+        "income": labels["QID24"],
+        "education": labels["QID25"],
         "browser": values["QID17_BROWSER"],
         "version": values["QID17_VERSION"],
         "os": values["QID17_OS"],
