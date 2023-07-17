@@ -144,14 +144,6 @@ def get_answer_from_result(result):
 
     skin_tone = labels["QID67"]
 
-    if skin_tone != "Prefer not to answer":
-        # searches for alt="{value} - *"
-        pattern = rf"alt\s*=\s*['\"](.*?)(\s-)"
-        match = re.search(pattern, skin_tone, re.IGNORECASE)
-
-        if match:
-            skin_tone = match.group(1)
-
     return {
         "ethnicity": labels["QID12"],
         "race": labels["QID36"],
