@@ -142,8 +142,6 @@ def get_answer_from_result(result):
     labels = result["labels"]
     values = result["values"]
 
-    skin_tone = labels["QID67"]
-
     return {
         "ethnicity": labels["QID12"],
         "race": labels["QID36"],
@@ -155,6 +153,6 @@ def get_answer_from_result(result):
         "version": values["QID17_VERSION"],
         "os": values["QID17_OS"],
         "resolution": values["QID17_RESOLUTION"],
-        "skin_tone": skin_tone,
+        "skin_tone": labels["QID67"],
         "image_redacted_request": labels["QID53"],
     }
