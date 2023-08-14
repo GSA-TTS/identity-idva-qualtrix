@@ -149,10 +149,6 @@ def get_answer_from_result(result):
         "age": values["QID15_TEXT"],
         "income": labels["QID24"],
         "education": labels["QID25"],
-        "browser": values["QID17_BROWSER"],
-        "version": values["QID17_VERSION"],
-        "os": values["QID17_OS"],
-        "resolution": values["QID17_RESOLUTION"],
         "skin_tone": labels["QID67"],
         "image_redacted_request": labels["QID53"],
     }
