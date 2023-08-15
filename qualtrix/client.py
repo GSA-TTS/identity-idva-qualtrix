@@ -151,4 +151,5 @@ def get_answer_from_result(result):
         "education": labels["QID25"],
         "skin_tone": labels["QID67"],
         "image_redacted_request": labels["QID53"],
+        "comments": values.get("QID38_TEXT", None),
     }
