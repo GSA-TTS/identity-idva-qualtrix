@@ -142,7 +142,7 @@ def get_answer_from_result(result):
 
     labels = result["labels"]
     values = result["values"]
-    
+
     return {
         "ethnicity": labels.get("QID12", None),
         "race": labels.get("QID36", None),
