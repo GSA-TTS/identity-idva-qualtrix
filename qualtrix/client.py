@@ -48,7 +48,8 @@ def get_response(survey_id: str, response_id: str):
 
     try:
         answer = get_answer_from_result(result)
-    except KeyError:
+    except KeyError as e:
+        log.exception(e)
         answer = result
 
     survey_answers["response"] = answer
@@ -141,15 +142,15 @@ def get_answer_from_result(result):
 
     labels = result["labels"]
     values = result["values"]
-
+    # Data sometimes has labels missing, so return null if val isnt found
     return {
-        "ethnicity": labels["QID12"],
-        "race": labels["QID36"],
-        "gender": labels["QID14"],
-        "age": values["QID15_TEXT"],
-        "income": labels["QID24"],
-        "education": labels["QID25"],
-        "skin_tone": labels["QID67"],
-        "image_redacted_request": labels["QID53"],
+        "ethnicity": labels.get("QID12", None),
+        "race": labels.get("QID36", None),
+        "gender": labels.get("QID14", None),
+        "age": values.get("QID15_TEXT", None),
+        "income": labels.get("QID24", None),
+        "education": labels.get("QID25", None),
+        "skin_tone": labels.get("QID67", None),
+        "image_redacted_request": labels.get("QID53", None),
         "comments": values.get("QID38_TEXT", None),
     }
