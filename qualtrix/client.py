@@ -144,6 +144,7 @@ def get_answer_from_result(result):
     values = result["values"]
     # Data sometimes has labels missing, so return null if val isnt found
     return {
+        "rules_consent_id": values.get("RulesConsentID", None),
         "ethnicity": labels.get("QID12", None),
         "race": labels.get("QID36", None),
         "gender": labels.get("QID14", None),
