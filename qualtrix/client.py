@@ -139,19 +139,35 @@ def get_answer_from_result(result):
     """
     Helper function to get desired values from a result
     """
-
     labels = result["labels"]
     values = result["values"]
     # Data sometimes has labels missing, so return null if val isnt found
-    return {
-        "rules_consent_id": values.get("RulesConsentID", None),
-        "ethnicity": labels.get("QID12", None),
-        "race": labels.get("QID36", None),
-        "gender": labels.get("QID14", None),
-        "age": values.get("QID15_TEXT", None),
-        "income": labels.get("QID24", None),
-        "education": labels.get("QID25", None),
-        "skin_tone": labels.get("QID67", None),
-        "image_redacted_request": labels.get("QID53", None),
-        "comments": values.get("QID38_TEXT", None),
-    }
+
+    if values.get("survey_type", None) == "quality_test":
+        return {
+            "tester_id": labels.get("QID1", None),
+            "test_type": labels.get("QID2", None),
+            "document_modification": labels.get("QID4", None),
+            "image_modification": labels.get("QID5", None),
+            "selfie_test_type": labels.get("QID6", None),
+            "device_type": labels.get("QID7", None),
+            "device_model": labels.get("QID8", "")
+            + labels.get("QID9", "")
+            + labels.get("QID10", "")
+            + values.get("QID11_TEXT", ""),
+            "fake_id_type": labels.get("QID12", None),
+            "spoof_artifact_type": labels.get("QID13", None),
+        }
+    else:
+        return {
+            "rules_consent_id": values.get("RulesConsentID", None),
+            "ethnicity": labels.get("QID12", None),
+            "race": labels.get("QID36", None),
+            "gender": labels.get("QID14", None),
+            "age": values.get("QID15_TEXT", None),
+            "income": labels.get("QID24", None),
+            "education": labels.get("QID25", None),
+            "skin_tone": labels.get("QID67", None),
+            "image_redacted_request": labels.get("QID53", None),
+            "comments": values.get("QID38_TEXT", None),
+        }
