@@ -11,6 +11,10 @@ log = logging.getLogger(__name__)
 # Permisions # read:survey_responses
 
 auth_header = {"X-API-TOKEN": settings.API_TOKEN}
+application_header = {
+    "X-API-TOKEN": settings.API_TOKEN,
+    "content-type": "application/json",
+}
 
 
 def get_response(survey_id: str, response_id: str):
@@ -65,6 +69,21 @@ def get_survey_schema(survey_id: str):
     )
 
     return r.json()
+
+
+def validate_email(email: str, directory_id=settings.DIRECTORY_ID):
+    r = requests.post(
+        settings.BASE_URL
+        + f"/directories/{directory_id}/contacts/search?includeEmbedded=true&includeSegments=false",
+        headers=application_header,
+        json=({"filter": {"filterType": "email", "comparison": "eq", "value": email}}),
+    )
+
+    if r.status_code != 200:
+        raise error.QualtricsError("Survey response not found, likely bad POOL ID")
+
+    elements = list((dict(r.json())["result"]["elements"]))
+    return len(elements) != 0
 
 
 def result_export(survey_id: str):

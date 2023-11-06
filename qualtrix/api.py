@@ -5,7 +5,7 @@ qualtrix rest api
 import logging
 
 import fastapi
-from fastapi import HTTPException
+from fastapi import HTTPException, responses
 from pydantic import BaseModel, typing
 
 from qualtrix import client, error
@@ -25,6 +25,11 @@ class ResponseModel(SurveyModel):
 
 class SessionModel(SurveyModel):
     sessionId: str
+
+
+class EmailValidationModel(BaseModel):
+    directoryId: str
+    email: str
 
 
 @router.post("/bulk-responses")
@@ -54,3 +59,21 @@ async def session(request: SessionModel):
         return client.delete_session(request.surveyId, request.sessionId)
     except error.QualtricsError as e:
         raise HTTPException(status_code=400, detail=e.args)
+
+
+@router.post("/email")
+async def email(request: EmailValidationModel):
+    """
+    Checks if the supplied email exists in the Contact Pool
+    """
+    try:
+        return responses.JSONResponse(
+            status_code=200,
+            content={
+                "emailPresent": client.validate_email(
+                    request.email, request.directoryId
+                )
+            },
+        )
+    except error.QualtricsError as e:
+        raise HTTPException(status_code=422, detail=e.args)
