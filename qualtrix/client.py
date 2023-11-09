@@ -157,6 +157,10 @@ def get_answer_from_result(result):
             + values.get("QID11_TEXT", ""),
             "fake_id_type": labels.get("QID12", None),
             "spoof_artifact_type": labels.get("QID13", None),
+            "document_type": labels.get("QID15", None),
+            "subject_alterations": labels.get("QID17", "")
+            + values.get("QID17_TEXT", ""),
+            "mask_type": labels.get("QID18", "") + values.get("QID18_4_TEXT", ""),
         }
     else:
         return {
