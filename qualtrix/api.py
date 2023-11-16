@@ -28,12 +28,12 @@ class SessionModel(SurveyModel):
 
 
 @router.post("/bulk-responses")
-async def test():
-    return client.result_export()
+async def get_bulk_responses(request: SurveyModel):
+    return client.result_export(request.surveyId)
 
 
 @router.post("/response")
-async def test(request: ResponseModel):
+async def get_response(request: ResponseModel):
     try:
         return client.get_response(request.surveyId, request.responseId)
     except error.QualtricsError as e:
@@ -41,8 +41,8 @@ async def test(request: ResponseModel):
 
 
 @router.post("/survey-schema")
-async def test():
-    return client.get_survey_schema()
+async def get_schema(request: SurveyModel):
+    return client.get_survey_schema(request.surveyId)
 
 
 @router.post("/delete-session")
