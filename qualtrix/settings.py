@@ -16,6 +16,8 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 LOG_LEVEL = os.getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
 
 API_TOKEN = None
+BASE_URL = None
+DIRECTORY_ID = None
 
 try:
     vcap_services = os.getenv("VCAP_SERVICES")
@@ -27,9 +29,15 @@ try:
                 log.info("Loading credentials from env var")
                 config = service["credentials"]
                 break
-    API_TOKEN = config["api_token"]
-    BASE_URL = config["base_url"]
-    DIRECTORY_ID = config["directory_id"]
+        API_TOKEN = config["api_token"]
+        BASE_URL = config["base_url"]
+        DIRECTORY_ID = config["directory_id"]
+    else:
+        API_TOKEN = os.getenv("QX_API_TOKEN")
+        BASE_URL = os.getenv("QX_BASE_URL")
+        DIRECTORY_ID = os.getenv("QX_DIRECTORY_ID")
+
+
 except (json.JSONDecodeError, KeyError, FileNotFoundError) as err:
     log.warning("Unable to load credentials from VCAP_SERVICES")
     log.debug("Error: %s", str(err))
