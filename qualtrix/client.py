@@ -140,9 +140,7 @@ def get_answer_from_result(result):
     Helper function to get desired values from a result
     """
     labels = result["labels"]
-    # log.info(labels)
     values = result["values"]
-    log.info(values)
     # Data sometimes has labels missing, so return null if val isnt found
 
     if values.get("survey_type", None) == "quality_test":
