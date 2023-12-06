@@ -32,7 +32,6 @@ class IBetaSurveyQuestion(Enum):
     MASK_TYPE = 18
 
     def QID_text_list(self, qx_data: dict) -> str or None:
-
         choice_raw = qx_data.get(f"QID{self.value}", None)
         if choice_raw is None:
             return choice_raw
@@ -191,7 +190,6 @@ def get_answer_from_result(result):
 
     # Data sometimes has labels missing, so return null if val isnt found
     if values.get("survey_type", None) == "quality_test":
-
         # Device type -> values returns the integer choice of the user. Casting that to the Enum
         # will convert to one of the specific device types (Apple, Google, Samsung)
         device_type_choice = IBetaSurveyQuestion.DEVICE_TYPE.QID_label(values)
