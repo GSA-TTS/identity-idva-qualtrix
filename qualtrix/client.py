@@ -1,3 +1,5 @@
+from enum import Enum
+
 import logging
 import requests
 import time
@@ -11,6 +13,50 @@ log = logging.getLogger(__name__)
 # Permisions # read:survey_responses
 
 auth_header = {"X-API-TOKEN": settings.API_TOKEN}
+
+
+class IBetaSurveyQuestion(Enum):
+    TESTER_ID = 1
+    TEST_TYPE = 2
+    DOCUMENT_MODIFICATION = 4
+    IMAGE_MODIFICATION = 5
+    SELFIE_TEST_TYPE = 6
+    DEVICE_TYPE = 7
+    DEVICE_MODEL_APPLE = 8
+    DEVICE_MODEL_SAMSUNG = 9
+    DEVICE_MODEL_GOOGLE = 10
+    FAKE_ID_TYPE = 12
+    SPOOF_ARTIFACT_TYPE = 13
+    DOCUMENT_TYPE = 15
+    SUBJECT_ALTERATIONS = 17
+    MASK_TYPE = 18
+
+    def QID_text_list(self, qx_data: dict) -> str or None:
+        choice_raw = qx_data.get(f"QID{self.value}", None)
+        if choice_raw is None:
+            return choice_raw
+
+        # Build list of text responses, assuming the worst case that every choice has a
+        # user-entered plaintext response
+        responses = []
+
+        for val in choice_raw:
+            resp = qx_data.get(f"QID{self.value}_{val}_TEXT", None)
+            if resp is not None:
+                responses.append(resp)
+        return responses
+
+    def QID_text(self, qx_data: dict) -> str or None:
+        choice_raw = qx_data.get(f"QID{self.value}", None)
+        # Get plaintext responses
+        response = qx_data.get(f"QID{self.value}_{choice_raw}_TEXT", None)
+        return response
+
+    def QID_label(self, qx_labels: dict) -> str or None:
+        return qx_labels.get(f"QID{self.value}", None)
+
+    def __eq__(self, other):
+        return self.value == other
 
 
 def get_response(survey_id: str, response_id: str):
@@ -141,25 +187,75 @@ def get_answer_from_result(result):
     """
     labels = result["labels"]
     values = result["values"]
-    # Data sometimes has labels missing, so return null if val isnt found
 
+    # Data sometimes has labels missing, so return null if val isnt found
     if values.get("survey_type", None) == "quality_test":
+        # Device type -> values returns the integer choice of the user. Casting that to the Enum
+        # will convert to one of the specific device types (Apple, Google, Samsung)
+        device_type_choice = IBetaSurveyQuestion.DEVICE_TYPE.QID_label(values)
+        device_response = {
+            "device_group": IBetaSurveyQuestion.DEVICE_TYPE.QID_label(labels),
+            "device_model": None,
+            # If the user has "Other" device group, (not Apple, Google, or Samsung) the
+            # self identification field will be here
+            "device_details": IBetaSurveyQuestion.DEVICE_TYPE.QID_text(values),
+        }
+
+        if device_type_choice == 1:  # Iphone or Ipad
+            device_response[
+                "device_model"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_label(labels)
+            device_response[
+                "device_details"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_text(values)
+        elif device_type_choice == 2:  # Samsung Galaxy Phone or Tablet
+            device_response[
+                "device_model"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_label(labels)
+            device_response[
+                "device_details"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_text(values)
+        elif device_type_choice == 3:  # Google Phone or Tablet
+            device_response[
+                "device_model"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_label(labels)
+            device_response[
+                "device_details"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_text(values)
+
         return {
-            "tester_id": labels.get("QID1", None),
-            "test_type": labels.get("QID2", None),
-            "document_modification": labels.get("QID4", None),
-            "image_modification": labels.get("QID5", None),
-            "selfie_test_type": labels.get("QID6", None),
-            "device_type": labels.get("QID7", None),
-            "device_model": labels.get("QID8", "")
-            + labels.get("QID9", "")
-            + labels.get("QID10", "")
-            + values.get("QID11_TEXT", ""),
-            "fake_id_type": labels.get("QID12", None),
-            "spoof_artifact_type": labels.get("QID13", None),
-            "document_type": labels.get("QID15", None),
-            "subject_alterations": labels.get("QID17", None),
-            "mask_type": labels.get("QID18", "") + values.get("QID18_4_TEXT", ""),
+            "tester_id": IBetaSurveyQuestion.TESTER_ID.QID_label(labels),
+            "test_type": IBetaSurveyQuestion.TEST_TYPE.QID_label(labels),
+            "document_modification": {
+                "modifications": IBetaSurveyQuestion.DOCUMENT_MODIFICATION.QID_label(
+                    labels
+                ),
+                "descriptions": IBetaSurveyQuestion.DOCUMENT_MODIFICATION.QID_text_list(
+                    values
+                ),
+            },
+            "image_modification": IBetaSurveyQuestion.IMAGE_MODIFICATION.QID_label(
+                labels
+            ),
+            "selfie_test_type": IBetaSurveyQuestion.SELFIE_TEST_TYPE.QID_label(labels),
+            "device": device_response,
+            "fake_id_type": IBetaSurveyQuestion.FAKE_ID_TYPE.QID_label(labels),
+            "spoof_artifact_type": IBetaSurveyQuestion.SPOOF_ARTIFACT_TYPE.QID_text(
+                values
+            ),
+            "document_type": IBetaSurveyQuestion.DOCUMENT_TYPE.QID_label(labels),
+            "subject_alteration": {
+                "alterations": IBetaSurveyQuestion.SUBJECT_ALTERATIONS.QID_label(
+                    labels
+                ),
+                "descriptions": IBetaSurveyQuestion.SUBJECT_ALTERATIONS.QID_text_list(
+                    values
+                ),
+            },
+            "mask": {
+                "type": IBetaSurveyQuestion.MASK_TYPE.QID_label(labels),
+                "description": IBetaSurveyQuestion.MASK_TYPE.QID_text(values),
+            },
         }
     else:
         return {
