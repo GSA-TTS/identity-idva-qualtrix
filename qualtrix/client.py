@@ -240,8 +240,8 @@ def get_answer_from_result(result):
             "selfie_test_type": IBetaSurveyQuestion.SELFIE_TEST_TYPE.QID_label(labels),
             "device": device_response,
             "fake_id_type": IBetaSurveyQuestion.FAKE_ID_TYPE.QID_label(labels),
-            "spoof_artifact_type": IBetaSurveyQuestion.SPOOF_ARTIFACT_TYPE.QID_text(
-                values
+            "spoof_artifact_type": IBetaSurveyQuestion.SPOOF_ARTIFACT_TYPE.QID_label(
+                labels
             ),
             "document_type": IBetaSurveyQuestion.DOCUMENT_TYPE.QID_label(labels),
             "subject_alteration": {
