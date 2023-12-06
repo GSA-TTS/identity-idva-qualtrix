@@ -57,7 +57,7 @@ class IBetaSurveyQuestion(Enum):
         return qx_labels.get(f"QID{self.value}", None)
 
     def __eq__(self, other):
-        return self.value == other.value
+        return self.value == other
 
 
 def get_response(survey_id: str, response_id: str):
@@ -191,6 +191,40 @@ def get_answer_from_result(result):
 
     # Data sometimes has labels missing, so return null if val isnt found
     if values.get("survey_type", None) == "quality_test":
+
+        # Device type -> values returns the integer choice of the user. Casting that to the Enum
+        # will convert to one of the specific device types (Apple, Google, Samsung)
+        device_type_choice = IBetaSurveyQuestion.DEVICE_TYPE.QID_label(values)
+        device_response = {
+            "device_group": IBetaSurveyQuestion.DEVICE_TYPE.QID_label(labels),
+            "device_model": None,
+            # If the user has "Other" device group, (not Apple, Google, or Samsung) the
+            # self identification field will be here
+            "device_details": IBetaSurveyQuestion.DEVICE_TYPE.QID_text(values),
+        }
+
+        if device_type_choice == 1:  # Iphone or Ipad
+            device_response[
+                "device_model"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_label(labels)
+            device_response[
+                "device_details"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_text(values)
+        elif device_type_choice == 2:  # Samsung Galaxy Phone or Tablet
+            device_response[
+                "device_model"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_label(labels)
+            device_response[
+                "device_details"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_text(values)
+        elif device_type_choice == 3:  # Google Phone or Tablet
+            device_response[
+                "device_model"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_label(labels)
+            device_response[
+                "device_details"
+            ] = IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_text(values)
+
         return {
             "tester_id": IBetaSurveyQuestion.TESTER_ID.QID_label(labels),
             "test_type": IBetaSurveyQuestion.TEST_TYPE.QID_label(labels),
@@ -206,34 +240,7 @@ def get_answer_from_result(result):
                 labels
             ),
             "selfie_test_type": IBetaSurveyQuestion.SELFIE_TEST_TYPE.QID_label(labels),
-            "device": {
-                "device_type": IBetaSurveyQuestion.DEVICE_TYPE.QID_label(labels),
-                "device_type_details": IBetaSurveyQuestion.DEVICE_TYPE.QID_text(values),
-                "samsung_device_group": {
-                    "device_model": IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_label(
-                        labels
-                    ),
-                    "device_details": IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_text(
-                        values
-                    ),
-                },
-                "apple_device_group": {
-                    "device_model": IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_label(
-                        labels
-                    ),
-                    "device_details": IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_text(
-                        values
-                    ),
-                },
-                "google_device_group": {
-                    "device_model": IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_label(
-                        labels
-                    ),
-                    "device_details": IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_text(
-                        values
-                    ),
-                },
-            },
+            "device": device_response,
             "fake_id_type": IBetaSurveyQuestion.FAKE_ID_TYPE.QID_label(labels),
             "spoof_artifact_type": IBetaSurveyQuestion.SPOOF_ARTIFACT_TYPE.QID_text(
                 values
