@@ -49,12 +49,10 @@ async def get_response(request: ResponseModel):
 @router.post("/redirect")
 async def get_redirect(request: RedirectModel):
     try:
-        return client.get_redirect(
-            request.surveyId,
-            request.targetSurveyId,
-            request.directoryId,
-            request.responseId,
-        )
+        email = client.get_email(request.surveyId, request.responseId)
+        contact = client.get_contact(request.directoryId, email)
+        distribution = client.get_distribution(request.directoryId, contact["id"])
+        return client.get_link(request.targetSurveyId, distribution["distributionId"])
     except error.QualtricsError as e:
         raise HTTPException(status_code=400, detail=e.args)
 

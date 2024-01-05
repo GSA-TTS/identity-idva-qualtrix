@@ -58,7 +58,7 @@ class IBetaSurveyQuestion(Enum):
         return self.value == other
 
 
-def get_redirect(survey_id, target_survey_id, directory_id, response_id):
+def get_email(survey_id: str, response_id: str):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
@@ -80,36 +80,48 @@ def get_redirect(survey_id, target_survey_id, directory_id, response_id):
             "Email could not be found, and redirect link could not be generated"
         )
 
+    return email
+
+
+def get_contact(directory_id: str, email: str):
+    header = copy.deepcopy(auth_header)
+    header["Accept"] = "application/json"
+
     # Email -> Contact ID
-    email_to_contact_id_payload = {
+    email_to_contact_payload = {
         "filter": {"filterType": "email", "comparison": "eq", "value": email}
     }
 
     r = requests.post(
         settings.BASE_URL + f"/directories/{directory_id}/contacts/search",
-        headers=auth_header,
+        headers=header,
         params={"includeEmbedded": "true"},
-        json=email_to_contact_id_payload,
+        json=email_to_contact_payload,
         timeout=settings.TIMEOUT,
     )
 
-    email_to_contact_id_resp = r.json()
+    email_to_contact_resp = r.json()
 
-    if "error" in email_to_contact_id_resp["meta"]:
-        raise error.QualtricsError(email_to_contact_id_resp["meta"]["error"])
+    if "error" in email_to_contact_resp["meta"]:
+        raise error.QualtricsError(email_to_contact_resp["meta"]["error"])
 
-    contact_id = next(
-        iter(x for x in email_to_contact_id_resp["result"]["elements"]), None
-    )
-    if contact_id is None:
+    contact = next(iter(x for x in email_to_contact_resp["result"]["elements"]), None)
+    if contact is None:
         raise error.QualtricsError(
             "Contact ID could not be found, and redirect link could not be generated"
         )
 
+    return contact
+
+
+def get_distribution(directory_id: str, contact_id: str):
+    header = copy.deepcopy(auth_header)
+    header["Accept"] = "application/json"
+
     # Contact ID -> Distribution ID https://api.qualtrics.com/f30cf65c90b7a-get-directory-contact-history
     r = requests.get(
         settings.BASE_URL
-        + f"/directories/{directory_id}/contacts/{contact_id['id']}/history",
+        + f"/directories/{directory_id}/contacts/{contact_id}/history",
         headers=header,
         params={"type": "email"},
         timeout=settings.TIMEOUT,
@@ -136,9 +148,16 @@ def get_redirect(survey_id, target_survey_id, directory_id, response_id):
             "Distribution ID could not be found, and redirect link could not be generated"
         )
 
+    return distribution
+
+
+def get_link(target_survey_id: str, distribution_id: str):
+    header = copy.deepcopy(auth_header)
+    header["Accept"] = "application/json"
+
     # Distribution ID -> Link https://api.qualtrics.com/437447486af95-list-distribution-links
     r = requests.get(
-        settings.BASE_URL + f"/distributions/{distribution['distributionId']}/links",
+        settings.BASE_URL + f"/distributions/{distribution_id}/links",
         headers=header,
         params={"surveyId": target_survey_id},
         timeout=settings.TIMEOUT,
@@ -197,7 +216,7 @@ def get_response(survey_id: str, response_id: str):
 
     survey_answers["response"] = answer
 
-    return response
+    return survey_answers
 
 
 def get_survey_schema(survey_id: str):
