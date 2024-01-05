@@ -4,8 +4,6 @@ from enum import Enum
 import logging
 import requests
 import time
-import re
-import json
 
 from qualtrix import settings, error
 
@@ -60,34 +58,45 @@ class IBetaSurveyQuestion(Enum):
         return self.value == other
 
 
-def get_redirect(survey_id, directory_id, email):
+def get_redirect(survey_id, target_survey_id, directory_id, response_id):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
-    # RulesConsentId -> Email
+    # ResponseId -> Email
+    r = requests.get(
+        settings.BASE_URL + f"/surveys/{survey_id}/responses/{response_id}",
+        headers=auth_header,
+        timeout=settings.TIMEOUT,
+    )
+
+    response_id_to_email = r.json()
+
+    if "error" in response_id_to_email["meta"]:
+        raise error.QualtricsError(response_id_to_email["meta"]["error"])
+
+    email = response_id_to_email["result"]["values"].get("QID37_3", None)
+    if email is None:
+        raise error.QualtricsError(
+            "Email could not be found, and redirect link could not be generated"
+        )
 
     # Email -> Contact ID
     email_to_contact_id_payload = {
-        "filter": {"comparison": "eq", "filterType": "email", "value": email}
+        "filter": {"filterType": "email", "comparison": "eq", "value": email}
     }
 
-    for i in range(settings.RETRY_ATTEMPTS):
-        r = requests.post(
-            settings.BASE_URL + f"/directories/{directory_id}/contacts/search",
-            headers=auth_header,
-            json=email_to_contact_id_payload,
-            timeout=settings.TIMEOUT,
-        )
-        if r:
-            break
-        else:
-            log.warn(f"Email to contact ID response not found. Retrying...")
-        time.sleep(settings.RETRY_WAIT)
+    r = requests.post(
+        settings.BASE_URL + f"/directories/{directory_id}/contacts/search",
+        headers=auth_header,
+        params={"includeEmbedded": "true"},
+        json=email_to_contact_id_payload,
+        timeout=settings.TIMEOUT,
+    )
 
     email_to_contact_id_resp = r.json()
 
     if "error" in email_to_contact_id_resp["meta"]:
-        return email_to_contact_id_resp
+        raise error.QualtricsError(email_to_contact_id_resp["meta"]["error"])
 
     contact_id = next(
         iter(x for x in email_to_contact_id_resp["result"]["elements"]), None
@@ -98,50 +107,47 @@ def get_redirect(survey_id, directory_id, email):
         )
 
     # Contact ID -> Distribution ID https://api.qualtrics.com/f30cf65c90b7a-get-directory-contact-history
-    for i in range(settings.RETRY_ATTEMPTS):
-        r = requests.get(
-            settings.BASE_URL
-            + f"/directories/{directory_id}/contacts/{contact_id['id']}/history",
-            headers=header,
-            params={"type": "email"},
-            timeout=settings.TIMEOUT,
-        )
-        if r:
-            break
-        else:
-            log.warn(f"Contact ID to Distribution ID response not found. Retrying...")
-        time.sleep(settings.RETRY_WAIT)
+    r = requests.get(
+        settings.BASE_URL
+        + f"/directories/{directory_id}/contacts/{contact_id['id']}/history",
+        headers=header,
+        params={"type": "email"},
+        timeout=settings.TIMEOUT,
+    )
 
     contact_to_distribution_resp = r.json()
+
     if "error" in contact_to_distribution_resp["meta"]:
-        return contact_to_distribution_resp
+        raise error.QualtricsError(contact_to_distribution_resp["meta"]["error"])
 
     distribution = next(
-        iter(x for x in contact_to_distribution_resp["result"]["elements"]), None
+        iter(
+            [
+                x
+                for x in contact_to_distribution_resp["result"]["elements"]
+                if x["type"] == "Invite"
+            ]
+        ),
+        None,
     )
+
     if distribution is None:
         raise error.QualtricsError(
             "Distribution ID could not be found, and redirect link could not be generated"
         )
 
     # Distribution ID -> Link https://api.qualtrics.com/437447486af95-list-distribution-links
-    for i in range(settings.RETRY_ATTEMPTS):
-        r = requests.get(
-            settings.BASE_URL
-            + f"/distributions/{distribution['distributionId']}/links",
-            headers=header,
-            params={"surveyId": survey_id},
-            timeout=settings.TIMEOUT,
-        )
-        if r:
-            break
-        else:
-            log.warn(f"Distribution id to link response not found. Retrying...")
-        time.sleep(settings.RETRY_WAIT)
+    r = requests.get(
+        settings.BASE_URL + f"/distributions/{distribution['distributionId']}/links",
+        headers=header,
+        params={"surveyId": target_survey_id},
+        timeout=settings.TIMEOUT,
+    )
 
     distribution_to_link_resp = r.json()
+
     if "error" in distribution_to_link_resp["meta"]:
-        return distribution_to_link_resp
+        raise error.QualtricsError(distribution_to_link_resp["meta"]["error"])
 
     link = next(iter(x for x in distribution_to_link_resp["result"]["elements"]), None)
     if link is None:
