@@ -27,6 +27,12 @@ class SessionModel(SurveyModel):
     sessionId: str
 
 
+class RedirectModel(SurveyModel):
+    directoryId: str
+    targetSurveyId: str
+    responseId: str
+
+
 @router.post("/bulk-responses")
 async def get_bulk_responses(request: SurveyModel):
     return client.result_export(request.surveyId)
@@ -37,6 +43,18 @@ async def get_response(request: ResponseModel):
     try:
         return client.get_response(request.surveyId, request.responseId)
     except error.QualtricsError as e:
+        raise HTTPException(status_code=400, detail=e.args)
+
+
+@router.post("/redirect")
+async def get_redirect(request: RedirectModel):
+    try:
+        email = client.get_email(request.surveyId, request.responseId)
+        contact = client.get_contact(request.directoryId, email)
+        distribution = client.get_distribution(request.directoryId, contact["id"])
+        return client.get_link(request.targetSurveyId, distribution["distributionId"])
+    except error.QualtricsError as e:
+        logging.error(e)
         raise HTTPException(status_code=400, detail=e.args)
 
 
