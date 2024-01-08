@@ -62,6 +62,10 @@ def get_email(survey_id: str, response_id: str):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
+    logging.info(
+        f"Survey, Response -> Email (SurveyId={survey_id}, Response={response_id})"
+    )
+
     # ResponseId -> Email
     r = requests.get(
         settings.BASE_URL + f"/surveys/{survey_id}/responses/{response_id}",
@@ -92,6 +96,8 @@ def get_contact(directory_id: str, email: str):
         "filter": {"filterType": "email", "comparison": "eq", "value": email}
     }
 
+    logging.info(f"Email -> Contact (DirectoryId={directory_id})")
+
     r = requests.post(
         settings.BASE_URL + f"/directories/{directory_id}/contacts/search",
         headers=header,
@@ -118,6 +124,9 @@ def get_distribution(directory_id: str, contact_id: str):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
+    logging.info(
+        f"Directory, Contact -> Distribution (Directory={directory_id}, Contact={contact_id})"
+    )
     # Contact ID -> Distribution ID https://api.qualtrics.com/f30cf65c90b7a-get-directory-contact-history
     r = requests.get(
         settings.BASE_URL
@@ -154,6 +163,10 @@ def get_distribution(directory_id: str, contact_id: str):
 def get_link(target_survey_id: str, distribution_id: str):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
+
+    logging.info(
+        f"Target Survey, Distribution -> Redirect link (SurveyId={target_survey_id}, Response={distribution_id})"
+    )
 
     # Distribution ID -> Link https://api.qualtrics.com/437447486af95-list-distribution-links
     r = requests.get(

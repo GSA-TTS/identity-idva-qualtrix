@@ -54,6 +54,7 @@ async def get_redirect(request: RedirectModel):
         distribution = client.get_distribution(request.directoryId, contact["id"])
         return client.get_link(request.targetSurveyId, distribution["distributionId"])
     except error.QualtricsError as e:
+        logging.error(e)
         raise HTTPException(status_code=400, detail=e.args)
 
 
