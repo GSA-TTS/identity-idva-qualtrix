@@ -72,3 +72,9 @@ async def session(request: SessionModel):
         return client.delete_session(request.surveyId, request.sessionId)
     except error.QualtricsError as e:
         raise HTTPException(status_code=400, detail=e.args)
+
+
+@router.get("/history")
+async def dist(dist: str):
+    
+    return client.get_responseIds_by_dist(dist)

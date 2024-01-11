@@ -232,6 +232,67 @@ def get_response(survey_id: str, response_id: str):
     return survey_answers
 
 
+def get_contact(contact_id: str):
+    r = requests.get(
+        settings.BASE_URL
+        + f"/directories/{settings.DIRECTORY_ID}/contacts/{contact_id}",
+        headers=auth_header,
+        timeout=settings.TIMEOUT,
+    )
+
+    return r.json()
+
+
+def get_contact_history(contact_id: str):
+
+    logging.info(f"contact history for {contact_id}")
+    r = requests.get(
+        settings.BASE_URL
+        + f"/directories/{settings.DIRECTORY_ID}/contacts/{contact_id}/history",
+        headers=auth_header,
+        timeout=settings.TIMEOUT,
+        params={"type": "response"},
+    )
+
+    logging.info(f"contact history for {contact_id}")
+
+    return r.json()
+
+def get_distribution_history(distributionId: str):
+    url = settings.BASE_URL + f"/distributions/{distributionId}/history"
+    r = requests.get(url, headers=auth_header, timeout=settings.TIMEOUT)
+    data = r.json()
+
+    return data
+
+def get_responseIds_by_dist(dist_string: str):
+    """ """
+    dist_parts = dist_string.split("_")
+    distributionId = "EMD_" + dist_parts[0]
+
+    data = get_distribution_history(distributionId)
+    contactId = data["result"]["elements"][0]["contactId"]
+
+    contacthist = get_contact_history(contactId)
+    dist_Id_list = list(
+        filter(
+            lambda y: y != None,
+            map(lambda x: x["distributionId"], contacthist["result"]["elements"]),
+        )
+    )
+
+    response_ids = []
+
+    for id in dist_Id_list:
+        data = get_distribution_history(id)
+
+        response_ids.extend(
+            map(lambda x: "R_" + x["surveySessionId"].split("_")[1], data["result"]["elements"])
+        )
+
+    return response_ids
+
+
 def get_survey_schema(survey_id: str):
     r = requests.get(
         settings.BASE_URL + f"/surveys/{survey_id}/response-schema",
