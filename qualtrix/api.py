@@ -6,9 +6,9 @@ import logging
 
 import fastapi
 from fastapi import HTTPException
-from pydantic import BaseModel, typing
+from pydantic import BaseModel
 
-from qualtrix import client, error
+from qualtrix import client, error, settings
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +28,6 @@ class SessionModel(SurveyModel):
 
 
 class RedirectModel(SurveyModel):
-    directoryId: str
     targetSurveyId: str
     responseId: str
 
@@ -50,8 +49,8 @@ async def get_response(request: ResponseModel):
 async def get_redirect(request: RedirectModel):
     try:
         email = client.get_email(request.surveyId, request.responseId)
-        contact = client.get_contact(request.directoryId, email)
-        distribution = client.get_distribution(request.directoryId, contact["id"])
+        contact = client.get_contact(settings.DIRECTORY_ID, email)
+        distribution = client.get_distribution(settings.DIRECTORY_ID, contact["id"])
         return client.get_link(request.targetSurveyId, distribution["distributionId"])
     except error.QualtricsError as e:
         logging.error(e)

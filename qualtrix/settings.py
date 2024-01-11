@@ -33,9 +33,9 @@ try:
         BASE_URL = config["base_url"]
         DIRECTORY_ID = config["directory_id"]
     else:
-        API_TOKEN = os.getenv("QX_API_TOKEN")
-        BASE_URL = os.getenv("QX_BASE_URL")
-        DIRECTORY_ID = os.getenv("QX_DIRECTORY_ID")
+        API_TOKEN = os.getenv("QUALTRIX_API_TOKEN")
+        BASE_URL = os.getenv("QUALTRIX_BASE_URL")
+        DIRECTORY_ID = os.getenv("QUALTRIX_DIRECTORY_ID")
 
 
 except (json.JSONDecodeError, KeyError, FileNotFoundError) as err:
