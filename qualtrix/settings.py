@@ -29,9 +29,9 @@ try:
                 log.info("Loading credentials from env var")
                 config = service["credentials"]
                 break
-        API_TOKEN = config["apiToken"]
-        BASE_URL = config["baseUrl"]
-        DIRECTORY_ID = config["directoryId"]
+        API_TOKEN = config["api_token"]
+        BASE_URL = config["base_url"]
+        DIRECTORY_ID = config["directory_id"]
     else:
         API_TOKEN = os.getenv("QUALTRIX_API_TOKEN")
         BASE_URL = os.getenv("QUALTRIX_BASE_URL")
