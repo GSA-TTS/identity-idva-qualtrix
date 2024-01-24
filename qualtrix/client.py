@@ -232,8 +232,8 @@ def get_response(survey_id: str, response_id: str):
     return survey_answers
 
 
-def get_contact(contact_id: str):
-    logging.info(f"get_contact {contact_id}")
+def get_contact_by_id(contact_id: str):
+    logging.info(f"get_contact_by_id {contact_id}")
 
     r = requests.get(
         settings.BASE_URL
@@ -242,8 +242,8 @@ def get_contact(contact_id: str):
         timeout=settings.TIMEOUT,
     )
 
-    logging.info(f"get_contact {contact_id} {r.status_code}")
-    logging.debug(f"get_contact {contact_id} {r.text}")
+    logging.info(f"get_contact_by_id {contact_id} {r.status_code}")
+    logging.debug(f"get_contact_by_id {contact_id} {r.text}")
 
     return r.json()
 
