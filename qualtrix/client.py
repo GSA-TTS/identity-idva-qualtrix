@@ -58,6 +58,29 @@ class IBetaSurveyQuestion(Enum):
         return self.value == other
 
 
+def get_participant(survey_id: str, response_id: str):
+    header = copy.deepcopy(auth_header)
+    header["Accept"] = "application/json"
+
+    logging.info(
+        f"Survey, Response -> Email (SurveyId={survey_id}, Response={response_id})"
+    )
+
+    # ResponseId -> Email
+    r = requests.get(
+        settings.BASE_URL + f"/surveys/{survey_id}/responses/{response_id}",
+        headers=auth_header,
+        timeout=settings.TIMEOUT,
+    )
+
+    response_id_to_participant = r.json()
+
+    if "error" in response_id_to_participant["meta"]:
+        raise error.QualtricsError(response_id_to_participant["meta"]["error"])
+
+    return response_id_to_participant
+
+
 def get_email(survey_id: str, response_id: str):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"

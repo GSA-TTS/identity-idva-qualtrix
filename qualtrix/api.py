@@ -57,6 +57,17 @@ async def get_redirect(request: RedirectModel):
         raise HTTPException(status_code=400, detail=e.args)
 
 
+@router.post("/redirect-v2")
+async def get_redirect_v2(request: RedirectModel):
+    try:
+        participant = client.get_participant(request.surveyId, request.responseId)
+        return participant
+    except error.QualtricsError as e:
+        logging.error(e)
+        # the next time any client side changes are required update this to 422
+        raise HTTPException(status_code=400, detail=e.args)
+
+
 @router.post("/survey-schema")
 async def get_schema(request: SurveyModel):
     return client.get_survey_schema(request.surveyId)
