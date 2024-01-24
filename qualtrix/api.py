@@ -74,7 +74,11 @@ async def session(request: SessionModel):
         raise HTTPException(status_code=400, detail=e.args)
 
 
-@router.get("/history")
-async def dist(dist: str):
-    
-    return client.get_responseIds_by_dist(dist)
+@router.get("/contact/{contactId}/responseIds")
+async def dist(contactId: str):
+    return client.get_responseIds_by_contact(contactId)
+
+
+@router.get("/dist/{distId}/responseIds")
+async def dist(distId: str):
+    return client.get_responseIds_by_dist(distId)
