@@ -4,6 +4,9 @@ from enum import Enum
 import logging
 import requests
 import time
+import datetime
+from datetime import datetime, timedelta
+
 
 from qualtrix import settings, error
 
@@ -12,6 +15,17 @@ log = logging.getLogger(__name__)
 # Permisions # read:survey_responses
 
 auth_header = {"X-API-TOKEN": settings.API_TOKEN}
+
+
+class Participant:
+    def __init__(
+        self, r_id: str, f_name: str, l_name: str, email: str, lang: str
+    ) -> None:
+        self.response_id = r_id
+        self.first_name = f_name
+        self.last_name = l_name
+        self.email = email
+        self.language = lang
 
 
 class IBetaSurveyQuestion(Enum):
@@ -63,7 +77,7 @@ def get_participant(survey_id: str, response_id: str):
     header["Accept"] = "application/json"
 
     logging.info(
-        f"Survey, Response -> Email (SurveyId={survey_id}, Response={response_id})"
+        f"Survey, Response -> Participant (SurveyId={survey_id}, Response={response_id})"
     )
 
     # ResponseId -> Email
@@ -78,7 +92,177 @@ def get_participant(survey_id: str, response_id: str):
     if "error" in response_id_to_participant["meta"]:
         raise error.QualtricsError(response_id_to_participant["meta"]["error"])
 
-    return response_id_to_participant
+    participant_str = response_id_to_participant["result"]["values"]
+    if participant_str is None:
+        raise error.QualtricsError(
+            "Participant not found, did they complete the intake survey?"
+        )
+
+    f_name = participant_str["QID37_1"]
+    l_name = participant_str["QID37_2"]
+    email = participant_str["QID37_3"]
+    lang = participant_str["userLanguage"]
+
+    return Participant(response_id, f_name, l_name, email, lang)
+
+
+def create_directory_entry(
+    email: str, first_name: str, last_name: str, directory_id: str, mailing_list_id: str
+):
+    header = copy.deepcopy(auth_header)
+    header["Accept"] = "application/json"
+
+    logging.info(f"Creating new directory entry for {email}")
+
+    directory_payload = {
+        "firstName": first_name,
+        "lastName": last_name,
+        "email": email,
+        "embeddedData": {
+            "RulesConsentID": "test-rules",
+            "Date": "test-date",
+            "time": "test-time",
+            "SurveyswapID": "",
+            "utm_source": "test-utmsource",
+            "utm_medium": "test-utmmedium",
+            "utm_campaign": "test-utmcampaign",
+        },
+    }
+
+    # Create contact
+    r = requests.post(
+        settings.BASE_URL
+        + f"/directories/{directory_id}/mailinglists/{mailing_list_id}/contacts",
+        headers=header,
+        params={"includeEmbedded": "true"},
+        json=directory_payload,
+        timeout=settings.TIMEOUT,
+    )
+
+    create_directory_entry_response = r.json()
+    if "error" in create_directory_entry_response["meta"]:
+        raise error.QualtricsError(create_directory_entry_response["meta"]["error"])
+
+    directory_entry = create_directory_entry_response.get("result", None)
+    if directory_entry is None:
+        raise error.QualtricsError("Something went wrong creating the contact")
+
+    return directory_entry
+
+
+def create_reminder_distribution(
+    library_id: str,
+    reminder_message_id: str,
+    distribution_id: str,
+    reminder_date: datetime,
+):
+
+    header = copy.deepcopy(auth_header)
+    header["Accept"] = "application/json"
+
+    logging.info(
+        f"Create reminder distribution for {distribution_id} on {reminder_date}"
+    )
+
+    create_reminder_distribution_payload = {
+        "message": {"libraryId": library_id, "messageId": reminder_message_id},
+        "header": {
+            "fromEmail": settings.FROM_EMAIL,
+            "replyToEmail": settings.REPLY_TO_EMAIL,
+            "fromName": settings.FROM_NAME,
+            "subject": settings.REMINDER_SUBJECT,
+        },
+        "embeddedData": {"property1": "string", "property2": "string"},
+        "sendDate": reminder_date.isoformat() + "Z",
+    }
+
+    r = requests.post(
+        settings.BASE_URL + f"/distributions/{distribution_id}/reminders",
+        headers=header,
+        json=create_reminder_distribution_payload,
+        timeout=settings.TIMEOUT,
+    )
+
+    create_reminder_distribution_response = r.json()
+    if "error" in create_reminder_distribution_response["meta"]:
+        raise error.QualtricsError(
+            create_reminder_distribution_response["meta"]["error"]
+        )
+
+    reminder_distribution = create_reminder_distribution_response["result"]
+    if reminder_distribution is None:
+        raise error.QualtricsError("Something went wrong creating the distribution")
+
+
+def add_participant_to_contact_list(
+    auth_token: str, survey_label: str, survey_link: str
+):
+    header = copy.deepcopy(auth_header)
+    header["Accept"] = "application/json"
+
+    logging.info("Add participant to the contact list")
+
+    add_particpant_payload = {
+        "embeddedData": {survey_label: survey_link, "auth_token": auth_token}
+    }
+
+    r = requests.post(
+        settings.BASE_URL + f"/distributions/{distribution_id}/reminders",
+        headers=header,
+        json=create_reminder_distribution_payload,
+        timeout=settings.TIMEOUT,
+    )
+
+
+def create_email_distribution(
+    contact_id: str,
+    distribution_id: str,
+    library_id: str,
+    message_id: str,
+    mailing_list_id: str,
+    survey_id: str,
+):
+    header = copy.deepcopy(auth_header)
+    header["Accept"] = "application/json"
+
+    logging.info(f"Create email distribution ")
+
+    calltime = datetime.utcnow()
+    create_distribution_payload = {
+        "message": {"libraryId": library_id, "messageId": message_id},
+        "recipients": {"mailingListId": mailing_list_id, "contactId": contact_id},
+        "header": {
+            "fromEmail": settings.FROM_EMAIL,
+            "replyToEmail": settings.REPLY_TO_EMAIL,
+            "fromName": settings.FROM_NAME,
+            "subject": settings.INVITE_SUBJECT,
+        },
+        "surveyLink": {
+            "surveyId": survey_id,
+            "expirationDate": (calltime + timedelta(minutes=5)).isoformat()
+            + "Z",  # 1 month
+            "type": "Individual",
+        },
+        "embeddedData": {"": ""},  # for some reason this is required
+        "sendDate": (calltime + timedelta(seconds=10)).isoformat() + "Z",
+    }
+
+    r = requests.post(
+        settings.BASE_URL + f"/distributions",
+        headers=header,
+        json=create_distribution_payload,
+        timeout=settings.TIMEOUT,
+    )
+
+    create_distribution_response = r.json()
+    if "error" in create_distribution_response["meta"]:
+        raise error.QualtricsError(create_distribution_response["meta"]["error"])
+
+    email_distribution = create_distribution_response["result"]
+    if email_distribution is None:
+        raise error.QualtricsError("Something went wrong creating the distribution")
+
+    return email_distribution
 
 
 def get_email(survey_id: str, response_id: str):

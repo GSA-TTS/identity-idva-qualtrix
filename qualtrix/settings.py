@@ -15,9 +15,26 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
 
+# Qualtrics API Access
 API_TOKEN = None
 BASE_URL = None
+
+# Qualtrics API Control
 DIRECTORY_ID = None
+LIBRARY_ID = None
+REMINDER_MESSAGE_ID = None
+INVITE_MESSAGE_ID = None
+MAILING_LIST_ID = None
+
+# Distribution Content Config
+FROM_EMAIL = None
+REPLY_TO_EMAIL = None
+FROM_NAME = None
+
+INVITE_SUBJECT = None
+REMINDER_SUBJECT = None
+SURVEY_LINK_TYPE = None
+
 
 try:
     vcap_services = os.getenv("VCAP_SERVICES")
@@ -32,11 +49,31 @@ try:
         API_TOKEN = config["api_token"]
         BASE_URL = config["base_url"]
         DIRECTORY_ID = config["directory_id"]
+        LIBRARY_ID = config["library_id"]
+        REMINDER_MESSAGE_ID = config["reminder_message_id"]
+        INVITE_MESSAGE_ID = config["invite_message_id"]
+        MAILING_LIST_ID = config["mailing_list_id"]
+        FROM_EMAIL = config["from_email"]
+        REPLY_TO_EMAIL = config["reply_to_email"]
+        FROM_NAME = config["from_name"]
+        INVITE_SUBJECT = config["invite_subject"]
+        REMINDER_SUBJECT = config["reminder_subject"]
+        SURVEY_LINK_TYPE = config["survey_link_type"]
+
     else:
         API_TOKEN = os.getenv("QUALTRIX_API_TOKEN")
         BASE_URL = os.getenv("QUALTRIX_BASE_URL")
         DIRECTORY_ID = os.getenv("QUALTRIX_DIRECTORY_ID")
-
+        LIBRARY_ID = os.getenv("QUALTRIX_LIBRARY_ID")
+        REMINDER_MESSAGE_ID = os.getenv("QUALTRIX_REMINDER_MESSAGE_ID")
+        INVITE_MESSAGE_ID = os.getenv("QUALTRIX_INVITE_MESSAGE_ID")
+        MAILING_LIST_ID = os.getenv("QUALTRIX_MAILING_LIST_ID")
+        FROM_EMAIL = os.getenv("QUALTRIX_FROM_EMAIL")
+        REPLY_TO_EMAIL = os.getenv("QUALTRIX_REPLY_TO_EMAIL")
+        FROM_NAME = os.getenv("QUALTRIX_FROM_NAME")
+        INVITE_SUBJECT = os.getenv("QUALTRIX_INVITE_SUBJECT")
+        REMINDER_SUBJECT = os.getenv("QUALTRIX_REMINDER_SUBJECT")
+        SURVEY_LINK_TYPE = os.getenv("QUALTRIX_SURVEY_LINK_TYPE")
 
 except (json.JSONDecodeError, KeyError, FileNotFoundError) as err:
     log.warning("Unable to load credentials from VCAP_SERVICES")
