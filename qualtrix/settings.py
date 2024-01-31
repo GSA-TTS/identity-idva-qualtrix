@@ -59,6 +59,7 @@ try:
         INVITE_SUBJECT = config["invite_subject"]
         REMINDER_SUBJECT = config["reminder_subject"]
         SURVEY_LINK_TYPE = config["survey_link_type"]
+        DEMOGRAPHICS_SURVEY_LABEL = config["demographics_survey_label"]
 
     else:
         API_TOKEN = os.getenv("QUALTRIX_API_TOKEN")
@@ -74,6 +75,7 @@ try:
         INVITE_SUBJECT = os.getenv("QUALTRIX_INVITE_SUBJECT")
         REMINDER_SUBJECT = os.getenv("QUALTRIX_REMINDER_SUBJECT")
         SURVEY_LINK_TYPE = os.getenv("QUALTRIX_SURVEY_LINK_TYPE")
+        DEMOGRAPHICS_SURVEY_LABEL = os.getenv("QUALTRIX_DEMOGRAPHICS_SURVEY_LABEL")
 
 except (json.JSONDecodeError, KeyError, FileNotFoundError) as err:
     log.warning("Unable to load credentials from VCAP_SERVICES")

@@ -193,30 +193,36 @@ def create_reminder_distribution(
     if reminder_distribution is None:
         raise error.QualtricsError("Something went wrong creating the distribution")
 
+    return reminder_distribution
+
 
 def add_participant_to_contact_list(
-    auth_token: str, survey_label: str, survey_link: str
+    survey_label: str, survey_link: str, contact_id: str
 ):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
     logging.info("Add participant to the contact list")
 
-    add_particpant_payload = {
-        "embeddedData": {survey_label: survey_link, "auth_token": auth_token}
-    }
+    add_particpant_payload = {"embeddedData": {survey_label: survey_link}}
 
-    r = requests.post(
-        settings.BASE_URL + f"/distributions/{distribution_id}/reminders",
+    r = requests.put(
+        settings.BASE_URL
+        + f"/directories/{settings.DIRECTORY_ID}/mailinglists/{settings.MAILING_LIST_ID}/contacts/{contact_id}",
         headers=header,
-        json=create_reminder_distribution_payload,
+        json=add_particpant_payload,
         timeout=settings.TIMEOUT,
     )
+
+    add_to_contact_list_response = r.json()
+    if "error" in add_to_contact_list_response["meta"]:
+        raise error.QualtricsError(add_to_contact_list_response["meta"]["error"])
+
+    return contact_id
 
 
 def create_email_distribution(
     contact_id: str,
-    distribution_id: str,
     library_id: str,
     message_id: str,
     mailing_list_id: str,

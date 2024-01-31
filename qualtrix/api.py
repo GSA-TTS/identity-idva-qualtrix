@@ -36,7 +36,6 @@ class RedirectModel(SurveyModel):
     email: str
     first_name: str
     last_name: str
-    auth_token: str
 
 
 @router.post("/bulk-responses")
@@ -56,7 +55,6 @@ async def get_response(request: ResponseModel):
 async def intake_redirect(request: RedirectModel):
     start_time = time.time()
     try:
-        # participant = client.get_participant(request.surveyId, request.responseId)
         directory_entry = client.create_directory_entry(
             request.email,
             request.first_name,
@@ -64,10 +62,9 @@ async def intake_redirect(request: RedirectModel):
             settings.DIRECTORY_ID,
             settings.MAILING_LIST_ID,
         )
-        # TODO: Abstract this into a general create_distribution with a type argument
+
         email_distribution = client.create_email_distribution(
             directory_entry["contactLookupId"],
-            settings.DIRECTORY_ID,
             settings.LIBRARY_ID,
             settings.INVITE_MESSAGE_ID,
             settings.MAILING_LIST_ID,
@@ -77,6 +74,7 @@ async def intake_redirect(request: RedirectModel):
 
         # If link creation succeeds, create reminders while the link is returned
         create_task(create_reminder_distributions(email_distribution["id"]))
+        create_task(add_user_to_contact_list(link["link"], directory_entry["id"]))
 
         log.info("Redirect link created in %.2f seconds" % (time.time() - start_time))
         return link
@@ -87,12 +85,21 @@ async def intake_redirect(request: RedirectModel):
 
 
 async def create_reminder_distributions(distribution_id: str):
-    client.create_reminder_distribution(
+    distribution = client.create_reminder_distribution(
         settings.LIBRARY_ID,
         settings.REMINDER_MESSAGE_ID,
         distribution_id,
         (datetime.utcnow() + timedelta(minutes=1)),
     )
+
+    logging.info(f"created reminder {distribution['distributionId']}")
+
+
+async def add_user_to_contact_list(survey_link: str, contact_id: str):
+    contact = client.add_participant_to_contact_list(
+        settings.DEMOGRAPHICS_SURVEY_LABEL, survey_link, contact_id
+    )
+    logging.info(f"add contact {contact} to contact list")
 
 
 @router.post("/survey-schema")
