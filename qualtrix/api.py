@@ -34,8 +34,8 @@ class SessionModel(SurveyModel):
 class RedirectModel(SurveyModel):
     targetSurveyId: str
     email: str
-    first_name: str
-    last_name: str
+    firstName: str
+    lastName: str
 
 
 @router.post("/bulk-responses")
@@ -57,8 +57,8 @@ async def intake_redirect(request: RedirectModel):
     try:
         directory_entry = client.create_directory_entry(
             request.email,
-            request.first_name,
-            request.last_name,
+            request.firstName,
+            request.lastName,
             settings.DIRECTORY_ID,
             settings.MAILING_LIST_ID,
         )
@@ -96,10 +96,9 @@ async def create_reminder_distributions(distribution_id: str):
 
 
 async def add_user_to_contact_list(survey_link: str, contact_id: str):
-    contact = client.add_participant_to_contact_list(
+    return client.add_participant_to_contact_list(
         settings.DEMOGRAPHICS_SURVEY_LABEL, survey_link, contact_id
     )
-    logging.info(f"add contact {contact} to contact list")
 
 
 @router.post("/survey-schema")

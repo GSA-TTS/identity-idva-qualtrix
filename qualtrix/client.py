@@ -202,9 +202,11 @@ def add_participant_to_contact_list(
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
-    logging.info("Add participant to the contact list")
-
     add_particpant_payload = {"embeddedData": {survey_label: survey_link}}
+
+    logging.info(
+        f"Contact ({contact_id}) -> Directory ({settings.DIRECTORY_ID}), Mailing List ({settings.MAILING_LIST_ID})"
+    )
 
     r = requests.put(
         settings.BASE_URL
