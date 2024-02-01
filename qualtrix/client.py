@@ -156,7 +156,6 @@ def create_reminder_distribution(
     distribution_id: str,
     reminder_date: datetime,
 ):
-
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
