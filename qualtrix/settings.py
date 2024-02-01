@@ -34,7 +34,8 @@ FROM_NAME = None
 INVITE_SUBJECT = None
 REMINDER_SUBJECT = None
 SURVEY_LINK_TYPE = None
-
+DEMOGRAPHICS_SURVEY_LABEL = None
+RULES_CONSENT_ID_LABEL = None
 
 try:
     vcap_services = os.getenv("VCAP_SERVICES")
@@ -77,7 +78,7 @@ try:
         REMINDER_SUBJECT = os.getenv("QUALTRIX_REMINDER_SUBJECT")
         SURVEY_LINK_TYPE = os.getenv("QUALTRIX_SURVEY_LINK_TYPE")
         DEMOGRAPHICS_SURVEY_LABEL = os.getenv("QUALTRIX_DEMOGRAPHICS_SURVEY_LABEL")
-        RULES_CONSENT_ID_LABEL = os.getenv("QUALTRIX_GET_RULES_CONSENT_ID_LABEL")
+        RULES_CONSENT_ID_LABEL = os.getenv("QUALTRIX_RULES_CONSENT_ID_LABEL")
 
 except (json.JSONDecodeError, KeyError, FileNotFoundError) as err:
     log.warning("Unable to load credentials from VCAP_SERVICES")

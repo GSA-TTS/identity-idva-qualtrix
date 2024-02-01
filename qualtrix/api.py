@@ -76,7 +76,12 @@ async def intake_redirect(request: RedirectModel):
         create_task(create_reminder_distributions(email_distribution["id"]))
         create_task(
             add_user_to_contact_list(
-                link["link"], directory_entry["id"], request.rulesConsentId
+                link["link"],
+                directory_entry["id"],
+                request.rulesConsentId,
+                request.firstName,
+                request.lastName,
+                datetime.utcnow(),
             )
         )
 
@@ -93,19 +98,27 @@ async def create_reminder_distributions(distribution_id: str):
         settings.LIBRARY_ID,
         settings.REMINDER_MESSAGE_ID,
         distribution_id,
-        (datetime.utcnow() + timedelta(minutes=1)),
+        (datetime.utcnow() + timedelta(days=1)),
     )
 
 
 async def add_user_to_contact_list(
-    survey_link: str, contact_id: str, rules_consent_id: str
+    survey_link: str,
+    contact_id: str,
+    rules_consent_id: str,
+    first_name: str,
+    last_name: str,
+    timestamp_utc: datetime,
 ):
     return client.add_participant_to_contact_list(
         settings.DEMOGRAPHICS_SURVEY_LABEL,
         settings.RULES_CONSENT_ID_LABEL,
         survey_link,
         contact_id,
-        rules_consent_id,
+        client.modify_prefix("FS", "R", rules_consent_id),
+        first_name,
+        last_name,
+        timestamp_utc,
     )
 
 

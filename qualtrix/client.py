@@ -195,12 +195,19 @@ def create_reminder_distribution(
     return reminder_distribution
 
 
+def modify_prefix(current: str, desired: str, content: str) -> str:
+    return content.replace(f"{current}_", f"{desired}_", 1)
+
+
 def add_participant_to_contact_list(
     survey_label: str,
     rules_consent_id_label,
     survey_link: str,
     contact_id: str,
     rules_consent_id: str,
+    first_name: str,
+    last_name: str,
+    timestamp_utc: datetime,
 ):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
@@ -209,11 +216,14 @@ def add_participant_to_contact_list(
         "embeddedData": {
             survey_label: survey_link,
             rules_consent_id_label: rules_consent_id,
+            "firstName": first_name,
+            "lastName": last_name,
+            "timestamp": timestamp_utc.isoformat() + "Z",
         }
     }
 
     logging.info(
-        f"Contact ({contact_id}) -> Directory ({settings.DIRECTORY_ID}), Mailing List ({settings.MAILING_LIST_ID})"
+        f"Contact ({contact_id}) -> Directory ({settings.DIRECTORY_ID}), Mailing List ({settings.MAILING_LIST_ID}), Rules Consent ({rules_consent_id})"
     )
 
     r = requests.put(
