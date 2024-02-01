@@ -160,10 +160,6 @@ def create_reminder_distribution(
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
-    logging.info(
-        f"Create reminder distribution for {distribution_id} on {reminder_date}"
-    )
-
     create_reminder_distribution_payload = {
         "message": {"libraryId": library_id, "messageId": reminder_message_id},
         "header": {
@@ -193,16 +189,29 @@ def create_reminder_distribution(
     if reminder_distribution is None:
         raise error.QualtricsError("Something went wrong creating the distribution")
 
+    logging.info(
+        f"Create reminder distribution ({reminder_distribution['distributionId']}) -> {distribution_id} on {reminder_date}"
+    )
+
     return reminder_distribution
 
 
 def add_participant_to_contact_list(
-    survey_label: str, survey_link: str, contact_id: str
+    survey_label: str,
+    rules_consent_id_label,
+    survey_link: str,
+    contact_id: str,
+    rules_consent_id: str,
 ):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
 
-    add_particpant_payload = {"embeddedData": {survey_label: survey_link}}
+    add_particpant_payload = {
+        "embeddedData": {
+            survey_label: survey_link,
+            rules_consent_id_label: rules_consent_id,
+        }
+    }
 
     logging.info(
         f"Contact ({contact_id}) -> Directory ({settings.DIRECTORY_ID}), Mailing List ({settings.MAILING_LIST_ID})"

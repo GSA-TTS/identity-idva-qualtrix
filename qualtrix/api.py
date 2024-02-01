@@ -3,7 +3,6 @@ qualtrix rest api
 """
 
 from asyncio import create_task
-import datetime
 from datetime import datetime, timedelta
 import logging
 import time
@@ -36,6 +35,7 @@ class RedirectModel(SurveyModel):
     email: str
     firstName: str
     lastName: str
+    rulesConsentId: str
 
 
 @router.post("/bulk-responses")
@@ -74,7 +74,11 @@ async def intake_redirect(request: RedirectModel):
 
         # If link creation succeeds, create reminders while the link is returned
         create_task(create_reminder_distributions(email_distribution["id"]))
-        create_task(add_user_to_contact_list(link["link"], directory_entry["id"]))
+        create_task(
+            add_user_to_contact_list(
+                link["link"], directory_entry["id"], request.rulesConsentId
+            )
+        )
 
         log.info("Redirect link created in %.2f seconds" % (time.time() - start_time))
         return link
@@ -92,12 +96,16 @@ async def create_reminder_distributions(distribution_id: str):
         (datetime.utcnow() + timedelta(minutes=1)),
     )
 
-    logging.info(f"created reminder {distribution['distributionId']}")
 
-
-async def add_user_to_contact_list(survey_link: str, contact_id: str):
+async def add_user_to_contact_list(
+    survey_link: str, contact_id: str, rules_consent_id: str
+):
     return client.add_participant_to_contact_list(
-        settings.DEMOGRAPHICS_SURVEY_LABEL, survey_link, contact_id
+        settings.DEMOGRAPHICS_SURVEY_LABEL,
+        settings.RULES_CONSENT_ID_LABEL,
+        survey_link,
+        contact_id,
+        rules_consent_id,
     )
 
 
