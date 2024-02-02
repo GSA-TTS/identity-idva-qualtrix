@@ -110,14 +110,14 @@ async def create_reminder_distributions(distribution_id: str):
         settings.LIBRARY_ID,
         settings.REMINDER_MESSAGE_ID,
         distribution_id,
-        (datetime.utcnow() + timedelta(minutes=1)),
+        (datetime.utcnow() + timedelta(days=1)),
     )
 
     distribution = client.create_reminder_distribution(
         settings.LIBRARY_ID,
         settings.REMINDER_MESSAGE_ID,
         distribution_id,
-        (datetime.utcnow() + timedelta(minutes=3)),
+        (datetime.utcnow() + timedelta(days=3)),
     )
 
 
