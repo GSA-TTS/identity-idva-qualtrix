@@ -2,6 +2,7 @@
 Configuration for the qualtrix microservice settings.
 Context is switched based on if the app is in debug mode.
 """
+
 import json
 import logging
 import os

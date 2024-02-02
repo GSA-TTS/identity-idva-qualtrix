@@ -565,26 +565,26 @@ def get_answer_from_result(result):
         }
 
         if device_type_choice == 1:  # Iphone or Ipad
-            device_response[
-                "device_model"
-            ] = IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_label(labels)
-            device_response[
-                "device_details"
-            ] = IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_text(values)
+            device_response["device_model"] = (
+                IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_label(labels)
+            )
+            device_response["device_details"] = (
+                IBetaSurveyQuestion.DEVICE_MODEL_APPLE.QID_text(values)
+            )
         elif device_type_choice == 2:  # Samsung Galaxy Phone or Tablet
-            device_response[
-                "device_model"
-            ] = IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_label(labels)
-            device_response[
-                "device_details"
-            ] = IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_text(values)
+            device_response["device_model"] = (
+                IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_label(labels)
+            )
+            device_response["device_details"] = (
+                IBetaSurveyQuestion.DEVICE_MODEL_SAMSUNG.QID_text(values)
+            )
         elif device_type_choice == 3:  # Google Phone or Tablet
-            device_response[
-                "device_model"
-            ] = IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_label(labels)
-            device_response[
-                "device_details"
-            ] = IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_text(values)
+            device_response["device_model"] = (
+                IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_label(labels)
+            )
+            device_response["device_details"] = (
+                IBetaSurveyQuestion.DEVICE_MODEL_GOOGLE.QID_text(values)
+            )
 
         return {
             "tester_id": IBetaSurveyQuestion.TESTER_ID.QID_label(labels),

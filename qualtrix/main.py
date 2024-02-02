@@ -1,6 +1,7 @@
 """
 Qualtrix Microservice FastAPI Web App.
 """
+
 import logging
 
 import fastapi
