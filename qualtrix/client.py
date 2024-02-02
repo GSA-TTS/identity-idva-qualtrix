@@ -4,6 +4,7 @@ from enum import Enum
 import logging
 import requests
 import time
+import pytz
 import datetime
 from datetime import datetime, timedelta
 
@@ -118,15 +119,6 @@ def create_directory_entry(
         "firstName": first_name,
         "lastName": last_name,
         "email": email,
-        "embeddedData": {
-            "RulesConsentID": "test-rules",
-            "Date": "test-date",
-            "time": "test-time",
-            "SurveyswapID": "",
-            "utm_source": "test-utmsource",
-            "utm_medium": "test-utmmedium",
-            "utm_campaign": "test-utmcampaign",
-        },
     }
 
     # Create contact
@@ -201,13 +193,18 @@ def modify_prefix(current: str, desired: str, content: str) -> str:
 
 def add_participant_to_contact_list(
     survey_label: str,
-    rules_consent_id_label,
     survey_link: str,
-    contact_id: str,
+    rules_consent_id_label,
     rules_consent_id: str,
+    survey_swap_id_label: str,
+    survey_swap_id,
+    contact_id: str,
+    utm_campaign: str,
+    utm_medium: str,
+    utm_source: str,
     first_name: str,
     last_name: str,
-    timestamp_utc: datetime,
+    timestamp: datetime,
 ):
     header = copy.deepcopy(auth_header)
     header["Accept"] = "application/json"
@@ -216,9 +213,14 @@ def add_participant_to_contact_list(
         "embeddedData": {
             survey_label: survey_link,
             rules_consent_id_label: rules_consent_id,
+            survey_swap_id_label: survey_swap_id,
+            "utm_campaign": utm_campaign,
+            "utm_medium": utm_medium,
+            "utm_source": utm_source,
             "firstName": first_name,
             "lastName": last_name,
-            "timestamp": timestamp_utc.isoformat() + "Z",
+            "Date": timestamp.strftime("%m/%d/%Y"),
+            "time": timestamp.strftime("%H:%M:%S"),
         }
     }
 

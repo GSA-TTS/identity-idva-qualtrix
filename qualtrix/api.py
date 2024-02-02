@@ -6,6 +6,7 @@ from asyncio import create_task
 from datetime import datetime, timedelta
 import logging
 import time
+from zoneinfo import ZoneInfo
 
 import fastapi
 from fastapi import HTTPException
@@ -32,10 +33,14 @@ class SessionModel(SurveyModel):
 
 class RedirectModel(SurveyModel):
     targetSurveyId: str
+    RulesConsentID: str  # Client dependent
+    SurveyswapID: str  # Client dependent
+    utm_campaign: str
+    utm_medium: str
+    utm_source: str
     email: str
     firstName: str
     lastName: str
-    rulesConsentId: str
 
 
 @router.post("/bulk-responses")
@@ -70,6 +75,7 @@ async def intake_redirect(request: RedirectModel):
             settings.MAILING_LIST_ID,
             request.targetSurveyId,
         )
+
         link = client.get_link(request.targetSurveyId, email_distribution["id"])
 
         # If link creation succeeds, create reminders while the link is returned
@@ -78,10 +84,16 @@ async def intake_redirect(request: RedirectModel):
             add_user_to_contact_list(
                 link["link"],
                 directory_entry["id"],
-                request.rulesConsentId,
+                request.RulesConsentID,
+                request.SurveyswapID,
+                request.utm_campaign,
+                request.utm_medium,
+                request.utm_source,
                 request.firstName,
                 request.lastName,
-                datetime.utcnow(),
+                # https://stackoverflow.com/questions/10997577/python-timezone-conversion
+                # Consumers to this data require mountain time
+                datetime.now(tz=ZoneInfo("MST")),
             )
         )
 
@@ -98,7 +110,14 @@ async def create_reminder_distributions(distribution_id: str):
         settings.LIBRARY_ID,
         settings.REMINDER_MESSAGE_ID,
         distribution_id,
-        (datetime.utcnow() + timedelta(days=1)),
+        (datetime.utcnow() + timedelta(minutes=1)),
+    )
+
+    distribution = client.create_reminder_distribution(
+        settings.LIBRARY_ID,
+        settings.REMINDER_MESSAGE_ID,
+        distribution_id,
+        (datetime.utcnow() + timedelta(minutes=3)),
     )
 
 
@@ -106,19 +125,28 @@ async def add_user_to_contact_list(
     survey_link: str,
     contact_id: str,
     rules_consent_id: str,
+    survey_swap_id: str,
+    utm_campaign: str,
+    utm_medium: str,
+    utm_source: str,
     first_name: str,
     last_name: str,
-    timestamp_utc: datetime,
+    timestamp: datetime,
 ):
     return client.add_participant_to_contact_list(
         settings.DEMOGRAPHICS_SURVEY_LABEL,
-        settings.RULES_CONSENT_ID_LABEL,
         survey_link,
-        contact_id,
+        settings.RULES_CONSENT_ID_LABEL,
         client.modify_prefix("FS", "R", rules_consent_id),
+        settings.SURVEY_SWAP_ID_LABEL,
+        survey_swap_id,
+        contact_id,
+        utm_campaign,
+        utm_medium,
+        utm_source,
         first_name,
         last_name,
-        timestamp_utc,
+        timestamp,
     )
 
 
