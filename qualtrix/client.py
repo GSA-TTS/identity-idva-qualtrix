@@ -4,7 +4,6 @@ from enum import Enum
 import logging
 import requests
 import time
-import pytz
 import datetime
 from datetime import datetime, timedelta
 
