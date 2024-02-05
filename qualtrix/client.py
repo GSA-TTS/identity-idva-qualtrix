@@ -266,7 +266,7 @@ def create_email_distribution(
         },
         "surveyLink": {
             "surveyId": survey_id,
-            "expirationDate": (calltime + timedelta(minutes=5)).isoformat()
+            "expirationDate": (calltime + timedelta(days=30)).isoformat()
             + "Z",  # 1 month
             "type": "Individual",
         },
