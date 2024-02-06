@@ -38,6 +38,7 @@ SURVEY_LINK_TYPE = None
 DEMOGRAPHICS_SURVEY_LABEL = None
 RULES_CONSENT_ID_LABEL = None
 SURVEY_SWAP_ID_LABEL = None
+SURVEY_SWAP_GROUP_LABEL = None
 
 try:
     vcap_services = os.getenv("VCAP_SERVICES")
@@ -65,6 +66,7 @@ try:
         DEMOGRAPHICS_SURVEY_LABEL = config["demographics_survey_label"]
         RULES_CONSENT_ID_LABEL = config["rules_consent_id_label"]
         SURVEY_SWAP_ID_LABEL = config["survey_swap_id_label"]
+        SURVEY_SWAP_GROUP_LABEL = config["survey_swap_group_label"]
 
     else:
         API_TOKEN = os.getenv("QUALTRIX_API_TOKEN")
@@ -83,6 +85,7 @@ try:
         DEMOGRAPHICS_SURVEY_LABEL = os.getenv("QUALTRIX_DEMOGRAPHICS_SURVEY_LABEL")
         RULES_CONSENT_ID_LABEL = os.getenv("QUALTRIX_RULES_CONSENT_ID_LABEL")
         SURVEY_SWAP_ID_LABEL = os.getenv("QUALTRIX_SURVEY_SWAP_ID_LABEL")
+        SURVEY_SWAP_GROUP_LABEL = os.getenv("QUALTRIX_SURVEY_SWAP_GROUP_LABEL")
 
 except (json.JSONDecodeError, KeyError, FileNotFoundError) as err:
     log.warning("Unable to load credentials from VCAP_SERVICES")

@@ -35,6 +35,7 @@ class RedirectModel(SurveyModel):
     targetSurveyId: str
     RulesConsentID: str  # Client dependent
     SurveyswapID: str  # Client dependent
+    SurveyswapGroup: str  # Client dependent
     utm_campaign: str
     utm_medium: str
     utm_source: str
@@ -86,6 +87,7 @@ async def intake_redirect(request: RedirectModel):
                 directory_entry["id"],
                 request.RulesConsentID,
                 request.SurveyswapID,
+                request.SurveyswapGroup,
                 request.utm_campaign,
                 request.utm_medium,
                 request.utm_source,
@@ -126,6 +128,7 @@ async def add_user_to_contact_list(
     contact_id: str,
     rules_consent_id: str,
     survey_swap_id: str,
+    survey_swap_group: str,
     utm_campaign: str,
     utm_medium: str,
     utm_source: str,
@@ -140,6 +143,8 @@ async def add_user_to_contact_list(
         client.modify_prefix("FS", "R", rules_consent_id),
         settings.SURVEY_SWAP_ID_LABEL,
         survey_swap_id,
+        settings.SURVEY_SWAP_GROUP_LABEL,
+        survey_swap_group,
         contact_id,
         utm_campaign,
         utm_medium,
