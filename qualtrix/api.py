@@ -25,6 +25,7 @@ class SurveyModel(BaseModel):
 
 class ResponseModel(SurveyModel):
     responseId: str
+    raw: bool | None = False
 
 
 class SessionModel(SurveyModel):
@@ -52,7 +53,7 @@ async def get_bulk_responses(request: SurveyModel):
 @router.post("/response")
 async def get_response(request: ResponseModel):
     try:
-        return client.get_response(request.surveyId, request.responseId)
+        return client.get_response(request.surveyId, request.responseId, request.raw)
     except error.QualtricsError as e:
         raise HTTPException(status_code=400, detail=e.args)
 
@@ -169,6 +170,11 @@ async def session(request: SessionModel):
         return client.delete_session(request.surveyId, request.sessionId)
     except error.QualtricsError as e:
         raise HTTPException(status_code=400, detail=e.args)
+
+
+@router.get("/contact/{contactId}")
+async def contact(contactId: str):
+    return client.get_contact_by_id(contactId)
 
 
 @router.get("/contact/{contactId}/responseIds")
