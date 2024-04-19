@@ -425,7 +425,7 @@ def get_link(target_survey_id: str, distribution_id: str):
     return link
 
 
-def get_response(survey_id: str, response_id: str):
+def get_response(survey_id: str, response_id: str, raw: bool):
     for i in range(settings.RETRY_ATTEMPTS):
         r = requests.get(
             settings.BASE_URL + f"/surveys/{survey_id}/responses/{response_id}",
@@ -465,6 +465,9 @@ def get_response(survey_id: str, response_id: str):
         answer = result
 
     survey_answers["response"] = answer
+
+    if raw:
+        survey_answers["raw"] = response
 
     return survey_answers
 
